@@ -5,10 +5,16 @@
         private $contato;
         private $estado;
         private $conexao;
-        function __construct(Conexao $conexao){
+        private $conexaoPool;
+        function __construct(PDO $conexao, Conexao $conexaoPool){
             $this->conexao = $conexao->conectar();
-            
+            $this->conexaoPool = $conexaoPool;
         }
+
+        public function __destruct() {
+            $this->conexaoPool->liberarConexao($this->conexao);
+        }
+
         public function __set($name, $value)
         {
             $this->$name = $value; 

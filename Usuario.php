@@ -8,6 +8,7 @@ session_start();
         private $senha;
         private $tipo;
         private $conexao;
+        private $conexaoPool;
 
         public function __get($name)
         {
@@ -17,9 +18,12 @@ session_start();
         {
             $this->$name = $value;
         }
-        function __construct(Conexao $conexao){
+        function __construct(PDO $conexao, Conexao $conexaoPool){
             $this->conexao = $conexao->conectar();
-            
+            $this->conexaoPool = $conexaoPool;
+        }
+        public function __destruct() {
+            $this->conexaoPool->liberarConexao($this->conexao);
         }
         
         public function logarUser ($user, $pass){

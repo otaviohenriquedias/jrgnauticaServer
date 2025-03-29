@@ -8,15 +8,22 @@
   use PHPMailer\PHPMailer\SMTP;
   use PHPMailer\PHPMailer\Exception;
     class Email {
-        private $conexao;
         private $id_email;
         private $nome;
         private $contato;
         private $email;
         private $corpo_email;
         private $lista_email;
-        function __construct(Conexao $conexao){
-            $this->conexao = $conexao->conectar();   
+        private $conexao;
+        private $conexaoPool;
+        
+        function __construct(PDO $conexao, Conexao $conexaoPool){
+            $this->conexao = $conexao->conectar();
+            $this->conexaoPool = $conexaoPool;
+        }
+
+        public function __destruct() {
+            $this->conexaoPool->liberarConexao($this->conexao);
         }
         public function __set($name, $value)
         {

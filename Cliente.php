@@ -1,7 +1,6 @@
 <?php
 session_start();
     class Cliente {
-        private $conexao;
         private $id_cliente;
         private $heat;
         private $nome;
@@ -15,9 +14,16 @@ session_start();
         private $atendente_nome;
         private $codAtendente;
         private $atendente;
-        function __construct(Conexao $conexao){
+        private $conexao;
+        private $conexaoPool;
+
+        function __construct(PDO $conexao, Conexao $conexaoPool){
             $this->conexao = $conexao->conectar();
-            
+            $this->conexaoPool = $conexaoPool;
+        }
+
+        public function __destruct() {
+            $this->conexaoPool->liberarConexao($this->conexao);
         }
         function __get($name){
             return $this->$name;    

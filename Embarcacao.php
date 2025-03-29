@@ -2,7 +2,6 @@
 session_start();
     class Embarcacao {
         private $query_consulta;
-        private $conexao;
         private $id_emcarcacao;
         private $propulsor;
         private $fabricante;
@@ -24,9 +23,15 @@ session_start();
         private $src = '../assets/embarcacoes/';
         private $tamanho;
         private $preco;
-        function __construct(Conexao $conexao){
+        private $conexao;
+        private $conexaoPool;
+        function __construct(PDO $conexao, Conexao $conexaoPool){
             $this->conexao = $conexao->conectar();
-            
+            $this->conexaoPool = $conexaoPool;
+        }
+
+        public function __destruct() {
+            $this->conexaoPool->liberarConexao($this->conexao);
         }
         public function __set($name, $value)
         {

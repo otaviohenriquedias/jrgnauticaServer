@@ -1,6 +1,7 @@
 <?php
     class Procura {
         private $conexao;
+        private $conexaoPool;
         private $cadastrante;
         private $id_procura;
         private $propulsor;
@@ -24,10 +25,15 @@
         private $valor_min_procura;
         private $valor_max_procura;
 
-        function __construct(Conexao $conexao){
+        function __construct(PDO $conexao, Conexao $conexaoPool){
             $this->conexao = $conexao->conectar();
-            
+            $this->conexaoPool = $conexaoPool;
         }
+
+        public function __destruct() {
+            $this->conexaoPool->liberarConexao($this->conexao);
+        }
+
         public function __get($name)
         {
             return $this->$name;
