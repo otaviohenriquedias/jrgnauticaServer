@@ -48,50 +48,87 @@ session_start();
         }
         
 
-        public function cadastrarEmb (){
-            $query =
+        public function cadastrarEmb() {
+            try {
+                $this->conexao->beginTransaction();
+        
+                $query = '
+                    INSERT INTO embarcacao (
+                        horas, potencia, quant_motor, modelo_motor, ano, caminho_imagem, 
+                        descricao, vendido, Fabricantes_id_fabricantes, Tipo_id_tipo, modelo, 
+                        Clientes_id_clientes, Captador_id_captador, Combustivel_id_combustivel, 
+                        offmarket, tamanho, valor, propulsor, marina_Marina
+                    ) VALUES (
+                        :horas, :potencia, :quant_motor, :modelo_motor, :ano, :caminho_imagem, 
+                        :descricao, :vendido, :fabricante, :tipo, :modelo, :cliente, 
+                        :captador, :combustivel, :offmarket, :tamanho, :preco, :propulsor, :marina
+                    )';
+        
+                $stmt = $this->conexao->prepare($query);
+    
+                $horas = intval($this->horas);
+                $potencia = intval($this->potencia);
+                $quant_motor = intval($this->quant_motor);
+                $ano = intval($this->ano);
+                $fabricante = intval($this->fabricante);
+                $tipo = intval($this->tipo);
+                $cliente = intval($this->propietario);
+                $captador = intval($this->captador);
+                $combustivel = intval($this->combustivel);
+                $tamanho = floatval($this->tamanho);
+                $preco = floatval($this->preco);
+                $vendido = boolval($this->vendido);
+                $offmarket = boolval($this->offmarket);
+                $caminho_imagem = $this->src;
+                $descricao = $this->descricao;
+                $modelo_motor = $this->modelo_motor;
+                $modelo = $this->modelo;
+                $propulsor = $this->propulsor;
+                $marina = $this->marina;
+        
+                // Bind dos valores já convertidos
+                $stmt->bindParam(':horas', $horas);
+                $stmt->bindParam(':potencia', $potencia);
+                $stmt->bindParam(':quant_motor', $quant_motor);
+                $stmt->bindParam(':modelo_motor', $modelo_motor);
+                $stmt->bindParam(':ano', $ano);
+                $stmt->bindParam(':caminho_imagem', $caminho_imagem);
+                $stmt->bindParam(':descricao', $descricao);
+                $stmt->bindParam(':vendido', $vendido, PDO::PARAM_BOOL);
+                $stmt->bindParam(':fabricante', $fabricante);
+                $stmt->bindParam(':tipo', $tipo);
+                $stmt->bindParam(':modelo', $modelo);
+                $stmt->bindParam(':cliente', $cliente);
+                $stmt->bindParam(':captador', $captador);
+                $stmt->bindParam(':combustivel', $combustivel);
+                $stmt->bindParam(':offmarket', $offmarket, PDO::PARAM_BOOL);
+                $stmt->bindParam(':tamanho', $tamanho);
+                $stmt->bindParam(':preco', $preco);
+                $stmt->bindParam(':propulsor', $propulsor);
+                $stmt->bindParam(':marina', $marina);
+        
+                if ($stmt->execute()) {
 
-            '
-            INSERT INTO embarcacao(horas, potencia, quant_motor, modelo_motor,
-             ano, caminho_imagem, descricao, vendido, 
-             Fabricantes_id_fabricantes, Tipo_id_tipo, modelo, Clientes_id_clientes, 
-             Captador_id_captador, Combustivel_id_combustivel, offmarket, tamanho, valor, propulsor, marina_Marina)
-
-             VALUES (:horas, :potencia, :quant_motor, :modelo_motor, :ano, :caminho_imagem,
-                    :descricao, :vendido, :fabricante, :tipo, :modelo, :cliente,
-                    :captador, :combustivel, :offmarket, :tamanho, :preco, :propulsor, :marina)
-             ';
-
-            $stmt = $this->conexao->prepare($query);
-            $stmt->bindValue(':horas', intval($this->horas));
-            $stmt->bindValue(':potencia', intval($this->potencia));
-            $stmt->bindValue(':quant_motor', intval($this->quant_motor));
-            $stmt->bindValue(':modelo_motor', $this->modelo_motor);
-            $stmt->bindValue(':ano', intval($this->ano));
-            $stmt->bindValue(':caminho_imagem', $this->src);
-            $stmt->bindValue(':descricao', $this->descricao);
-            $stmt->bindValue(':vendido', $this->vendido);
-            $stmt->bindValue(':fabricante', intval($this->fabricante));
-            $stmt->bindValue(':tipo', intval($this->tipo));
-            $stmt->bindValue(':modelo', $this->modelo);
-            $stmt->bindValue(':cliente', intval ($this->propietario));
-            $stmt->bindValue(':captador', intval($this->captador));
-            $stmt->bindValue(':combustivel', intval($this->combustivel));
-            $stmt->bindValue(':offmarket', $this->offmarket);
-            $stmt->bindValue(':tamanho', $this->tamanho);
-            $stmt->bindValue(':preco',$this->preco);
-            $stmt->bindValue(':propulsor',$this->propulsor);
-            $stmt->bindValue(':marina',$this->marina);
-            if($stmt->execute()){
-            $this->id_emcarcacao = $this->conexao->lastInsertId();
-            $teste = mkdir($this->src.$this->id_emcarcacao);
-               $this->updateSrcImg($this->src, $this->id_emcarcacao);
-               echo '{"status":"Cadastrada!", "mensagem" : "<h3>O código da pasta é <b>'.$this->id_emcarcacao.'<b/>!</h3>", "type" : "success"}';
-            }
-            else {
-                echo '{"status":"Ops!", "mensagem" : "Algo deu errado, tente novamente...", "type" : "error"}';
+                    $this->conexao->commit();
+        
+                    echo json_encode([
+                        "status" => "Cadastrada!",
+                        "mensagem" => "<h3>O código da pasta é <b>{$this->id_emcarcacao}</b>!</h3>",
+                        "type" => "success"
+                    ]);
+                } else {
+                    throw new Exception("Erro ao executar a query.");
+                }
+            } catch (Exception $e) {
+                $this->conexao->rollBack();
+                echo json_encode([
+                    "status" => "Ops!",
+                    "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                    "type" => "error"
+                ]);
             }
         }
+        
         public function listarBarcos (){
             $query = 
             '
@@ -391,6 +428,7 @@ MAIORES INFORMAÇÕES VIA DIRECT OU WHATSAPP:
                 }
         }
         public function atualizaEmbarcacao (){
+            $this->conexao->beginTransaction();
             $query =
 
             '
@@ -406,31 +444,42 @@ MAIORES INFORMAÇÕES VIA DIRECT OU WHATSAPP:
             WHERE 
                 id_embarcacao = :id_barco
              ';
-
-            $stmt = $this->conexao->prepare($query);
-            $stmt->bindValue(':horas', intval($this->horas));
-            $stmt->bindValue(':potencia', intval($this->potencia));
-            $stmt->bindValue(':quant_motor', intval($this->quant_motor));
-            $stmt->bindValue(':modelo_motor', $this->modelo_motor);
-            $stmt->bindValue(':ano', intval($this->ano));
-            $stmt->bindValue(':descricao', $this->descricao);
-            $stmt->bindValue(':vendido', $this->vendido);
-            $stmt->bindValue(':fabricante', intval($this->fabricante));
-            $stmt->bindValue(':tipo', intval($this->tipo));
-            $stmt->bindValue(':modelo', $this->modelo);
-            $stmt->bindValue(':cliente', intval ($this->propietario));
-            $stmt->bindValue(':captador', intval($this->captador));
-            $stmt->bindValue(':combustivel', intval($this->combustivel));
-            $stmt->bindValue(':offmarket', $this->offmarket);
-            $stmt->bindValue(':tamanho', $this->tamanho);
-            $stmt->bindValue(':id_barco', intval($this->id_embarcacao));
-            $stmt->bindValue(':preco', $this->preco);
-            $stmt->bindValue(':propulsor', $this->propulsor);
-            $stmt->bindValue(':marina', $this->marina);
-            $stmt->execute();
+            try {
+                $stmt = $this->conexao->prepare($query);
+                $stmt->bindValue(':horas', intval($this->horas));
+                $stmt->bindValue(':potencia', intval($this->potencia));
+                $stmt->bindValue(':quant_motor', intval($this->quant_motor));
+                $stmt->bindValue(':modelo_motor', $this->modelo_motor);
+                $stmt->bindValue(':ano', intval($this->ano));
+                $stmt->bindValue(':descricao', $this->descricao);
+                $stmt->bindValue(':vendido', $this->vendido);
+                $stmt->bindValue(':fabricante', intval($this->fabricante));
+                $stmt->bindValue(':tipo', intval($this->tipo));
+                $stmt->bindValue(':modelo', $this->modelo);
+                $stmt->bindValue(':cliente', intval ($this->propietario));
+                $stmt->bindValue(':captador', intval($this->captador));
+                $stmt->bindValue(':combustivel', intval($this->combustivel));
+                $stmt->bindValue(':offmarket', $this->offmarket);
+                $stmt->bindValue(':tamanho', $this->tamanho);
+                $stmt->bindValue(':id_barco', intval($this->id_embarcacao));
+                $stmt->bindValue(':preco', $this->preco);
+                $stmt->bindValue(':propulsor', $this->propulsor);
+                $stmt->bindValue(':marina', $this->marina);
+                $stmt->execute();
+                $this->conexao->commit();
+            } catch (Exeception $e) {
+                $this->conexao->rollBack();
+                echo json_encode([
+                    "status" => "Ops!",
+                    "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                    "type" => "error"
+                ]);
+            }
+            
 
     }
     public function deletaEmb ($id){
+        $this->conexao->beginTransaction();
         $query = 
         '
             SET FOREIGN_KEY_CHECKS = 0;
@@ -438,9 +487,22 @@ MAIORES INFORMAÇÕES VIA DIRECT OU WHATSAPP:
                 embarcacao
             WHERE
                 id_embarcacao= '.$id;
-
         $stmt = $this->conexao->prepare($query);
-        $stmt->execute();
+        try {
+            
+            $stmt->execute();
+            $this->conexao->commit();
+
+        } catch (Exception $e){
+            $this->conexao->rollBack();
+            echo json_encode([
+                "status" => "Ops!",
+                "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                "type" => "error"
+            ]);
+
+        }
+        
     }
     public function gerarDescritivo($descricao){
         $novaString = explode('
@@ -458,6 +520,7 @@ MAIORES INFORMAÇÕES VIA DIRECT OU WHATSAPP:
         
     }
     public function cadastraFabricante (){
+        $this->conexao->beginTransaction();
         $query = 
         '
             INSERT INTO 
@@ -465,13 +528,20 @@ MAIORES INFORMAÇÕES VIA DIRECT OU WHATSAPP:
             VALUES
                 (:fabricante) 
         ';
-        $stmt = $this->conexao->prepare($query);
-        $stmt->bindValue(':fabricante', $this->fabricante);
-        if($stmt->execute()){
-            echo '{"status":"Cadastrada!", "mensagem" : "Fabricante cadastrada com sucesso!", "type" : "success"}';
-        }
-        else {
-            echo '{"status":"Ops!", "mensagem" : "Algo deu errado, tente novamente...", "type" : "error"}';
+        try {
+            $stmt = $this->conexao->prepare($query);
+            $stmt->bindValue(':fabricante', $this->fabricante);
+            if($stmt->execute()){
+                $this->conexao->commit();
+                echo '{"status":"Cadastrada!", "mensagem" : "Fabricante cadastrada com sucesso!", "type" : "success"}';
+            }
+        } catch (Exception $e) {
+            $this->conexao->rollBack();
+            echo json_encode([
+                "status" => "Ops!",
+                "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                "type" => "error"
+            ]);
         }
     }
 }

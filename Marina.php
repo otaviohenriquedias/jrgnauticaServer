@@ -26,21 +26,28 @@
 
         public function cadastraMarina()
         {
-            $stmt = $this->conexao->prepare(' 
-            INSERT INTO marina(cidade, contato, Estados_id_estados, nome) 
-            VALUES (:cidade, :contato, :estado, :nome)    
-            ');
-            $stmt->bindValue(':cidade', $this->cidade);
-            $stmt->bindValue(':contato', $this->contato);
-            $stmt->bindValue(':estado', $this->estado);
-            $stmt->bindValue(':nome', $this->nome);
-            if($stmt->execute()){
-                echo '{"status":"Cadastrada!", "mensagem" : "Marina cadastrada com sucesso!", "type" : "success"}';
+            $this->conexao->beginTransaction();
+            try {
+                $stmt = $this->conexao->prepare(' 
+                INSERT INTO marina(cidade, contato, Estados_id_estados, nome) 
+                VALUES (:cidade, :contato, :estado, :nome)    
+                ');
+                $stmt->bindValue(':cidade', $this->cidade);
+                $stmt->bindValue(':contato', $this->contato);
+                $stmt->bindValue(':estado', $this->estado);
+                $stmt->bindValue(':nome', $this->nome);
+                if($stmt->execute()){
+                    $this->conexao->commit();
+                    echo '{"status":"Cadastrada!", "mensagem" : "Marina cadastrada com sucesso!", "type" : "success"}';
+                }
+            } catch (Exception $e) {
+                $this->conexao->rollBack();
+                echo json_encode([
+                    "status" => "Ops!",
+                    "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                    "type" => "error"
+                ]);
             }
-            else {
-                echo '{"status":"Ops!", "mensagem" : "Algo deu errado, tente novamente...", "type" : "error"}';
-            }
-            
         }
         public function getMarinas (){
             $stmt = $this->conexao->prepare(

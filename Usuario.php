@@ -57,19 +57,26 @@ session_start();
             }
         }
         public function cadastraUsuario (){
-
+            $this->conexao->beginTransaction();
             $stmt = $this->conexao->prepare(' 
             INSERT INTO usuario(cpf, nome, senha, TipoUsuario_id_tipo_usuario, reg_login) VALUES (:cpf, :nome, :senha, :tipo, CURRENT_TIMESTAMP)    
             ');
-            $stmt->bindValue(':cpf', $this->cpf);
-            $stmt->bindValue(':nome', $this->nome);
-            $stmt->bindValue(':senha', sha1($this->senha));
-            $stmt->bindValue(':tipo', $this->tipo);
-            if($stmt->execute()){
-                echo '{"status":"Cadastrado!", "mensagem" : "Broker cadastrado com sucesso!", "type" : "success"}';
-            }
-            else {
-                echo '{"status":"Ops!", "mensagem" : "Algo deu errado, tente novamente...", "type" : "error"}';
+            try {
+                $stmt->bindValue(':cpf', $this->cpf);
+                $stmt->bindValue(':nome', $this->nome);
+                $stmt->bindValue(':senha', sha1($this->senha));
+                $stmt->bindValue(':tipo', $this->tipo);
+                if($stmt->execute()){
+                    $this->conexao->commit();
+                    echo '{"status":"Cadastrado!", "mensagem" : "Broker cadastrado com sucesso!", "type" : "success"}';
+                }
+            } catch (Exception $e) {
+                $this->conexao->rollBack();
+                echo json_encode([
+                    "status" => "Ops!",
+                    "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                    "type" => "error"
+                ]);
             }
         }
 
@@ -159,6 +166,7 @@ session_start();
             }
         }
         public function atualizaUsuario ($id){
+            $this->conexao->beginTransaction();
             $query =
 
             '
@@ -170,21 +178,27 @@ session_start();
                 id_usuario = :id
 
              ';
-
-            $stmt = $this->conexao->prepare($query);
-            $stmt->bindValue(':cpf', $this->cpf);
-            $stmt->bindValue(':nome', $this->nome);
-            $stmt->bindValue(':senha', sha1($this->senha));
-            $stmt->bindValue(':tipo', $this->tipo);
-            $stmt->bindValue(':id', $id);
-            if($stmt->execute()){
-                echo '{"status":"Atualizado!", "mensagem" : "Broker atualizado com sucesso!", "type" : "success"}';
+            try {
+                $stmt = $this->conexao->prepare($query);
+                $stmt->bindValue(':cpf', $this->cpf);
+                $stmt->bindValue(':nome', $this->nome);
+                $stmt->bindValue(':senha', sha1($this->senha));
+                $stmt->bindValue(':tipo', $this->tipo);
+                $stmt->bindValue(':id', $id);
+                if($stmt->execute()){
+                    $this->conexao->commit();
+                    echo '{"status":"Atualizado!", "mensagem" : "Broker atualizado com sucesso!", "type" : "success"}';
+                }
+            } catch (Exception $e) {
+                $this->conexao->rollBack();
+                echo json_encode([
+                    "status" => "Ops!",
+                    "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                    "type" => "error"
+                ]);
             }
-            else{
-                echo '{"status":"Ops!", "mensagem" : "Algo deu errado, tente novamente...", "type" : "error"}';
-            }
 
-    }
+        }
 
     }
 ?>

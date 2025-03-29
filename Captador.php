@@ -45,20 +45,30 @@
         }
 
         public function cadastrarCaptador (){
+            $this->conexao->beginTransaction();
             $query = 
             '
             INSERT INTO captador(nome_captador, contato, ativo, empresa, categoria) 
             VALUES (:nome, :contato, :ativo, :empresa, :categoria)
             ';
-
-            $stmt = $this->conexao->prepare($query);
-            $stmt->bindValue(':nome', $this->nome);
-            $stmt->bindValue(':contato', $this->contato);
-            $stmt->bindValue(':empresa', $this->empresa);
-            $stmt->bindValue(':categoria', $this->categoria);
-            $stmt->bindValue(':ativo',0);
-            if($stmt->execute()){
-                echo '{"status":"Cadastrado", "Mensagem" : "Captador cadastrado com sucesso! Os dados do novo captador já foram salvos no banco de dados.", "type" : "success"}';
+            try {
+                $stmt = $this->conexao->prepare($query);
+                $stmt->bindValue(':nome', $this->nome);
+                $stmt->bindValue(':contato', $this->contato);
+                $stmt->bindValue(':empresa', $this->empresa);
+                $stmt->bindValue(':categoria', $this->categoria);
+                $stmt->bindValue(':ativo', 0);
+                if($stmt->execute()){
+                    $this->conexao->commit();
+                    echo '{"status":"Cadastrado", "Mensagem" : "Captador cadastrado com sucesso! Os dados do novo captador já foram salvos no banco de dados.", "type" : "success"}';
+                }
+            } catch (Exception $e) {
+                $this->conexao->rollBack();
+                echo json_encode([
+                    "status" => "Ops!",
+                    "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                    "type" => "error"
+                ]);
             }
             
             }
@@ -146,6 +156,7 @@
                   
                 }
                 public function atualizaCaptador ($id){
+                    $this->conexao->beginTransaction();
                     $query =
         
                     '
@@ -157,25 +168,28 @@
                         id_captador = :id
         
                      ';
-        
-                    $stmt = $this->conexao->prepare($query);
-                    $stmt->bindValue(':nome', $this->nome);
-                    $stmt->bindValue(':contato', $this->contato);
-                    $stmt->bindValue(':empresa', $this->empresa);
-                    $stmt->bindValue(':categoria', $this->categoria);
-                    $stmt->bindValue(':id', $id);
-                    if($stmt->execute()){
-                        echo '{"status":"Atualizado!", "mensagem" : "Captador atualizado com sucesso!", "type" : "success"}';
+                    try {
+                        $stmt = $this->conexao->prepare($query);
+                        $stmt->bindValue(':nome', $this->nome);
+                        $stmt->bindValue(':contato', $this->contato);
+                        $stmt->bindValue(':empresa', $this->empresa);
+                        $stmt->bindValue(':categoria', $this->categoria);
+                        $stmt->bindValue(':id', $id);
+                        if($stmt->execute()){
+                            $this->conexao->commit();
+                            echo '{"status":"Atualizado!", "mensagem" : "Captador atualizado com sucesso!", "type" : "success"}';
+                        }
+                    } catch (Exception $e) {
+                        $this->conexao->rollBack();
+                        echo json_encode([
+                            "status" => "Ops!",
+                            "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                            "type" => "error"
+                        ]);
                     }
-                    else{
-                        echo '{"status":"Ops!", "mensagem" : "Algo deu errado, tente novamente...", "type" : "error"}';
-                    }
+                }
+}
         
-            }
                 
             
-
-
-
-    }
 ?>

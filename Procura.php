@@ -44,30 +44,42 @@
         }
 
         public function cadastraProcura (){
+            $this->conexao->beginTransaction();
             $query = 
             '
             INSERT INTO procuras(modelo, horas, potencia, ano, ativo, p_fabricante, Clientes_id_clientes, p_combustivel, p_tipo, Usuario_id_usuario, tamanho, quant_motores, valor, propulsor) 
             VALUES (:modelo,:horas,:potencia, :ano, :ativo, :fabricante, :cliente, :combustivel,:tipo, :usuario, :tamanho, :quantmotores, :valor, :propulsor)
             '
             ;
-            $stmt = $this->conexao->prepare($query);
-            $stmt->bindValue(':modelo', $this->modelo);
-            $stmt->bindValue(':horas', intval($this->horas));
-            $stmt->bindValue(':potencia', intval($this->potencia));
-            $stmt->bindValue(':ano', intval($this->ano));
-            $stmt->bindValue(':ativo', $this->ativo);
-            $stmt->bindValue(':fabricante', intval($this->fabricante));
-            $stmt->bindValue(':cliente', intval($this->id_cliente));
-            $stmt->bindValue(':combustivel', intval($this->combustivel));
-            $stmt->bindValue(':tipo', intval($this->tipo));
-            $stmt->bindValue(':usuario', $this->cadastrante);
-            $this->tamanho_min_procura = str_replace(',', '.', $this->tamanho_min_procura);
-            $this->tamanho_max_procura = str_replace(',', '.', $this->tamanho_max_procura);
-            $stmt->bindValue(':tamanho', $this->tamanho_min_procura.'-'.$this->tamanho_max_procura);
-            $stmt->bindValue(':quantmotores', intval($this->quant_motores));
-            $stmt->bindValue(':valor', $this->valor_min_procura.'-'.$this->valor_max_procura);
-            $stmt->bindValue(':propulsor', intval($this->propulsor));
-            $stmt->execute();
+            try {
+                $stmt = $this->conexao->prepare($query);
+                $stmt->bindValue(':modelo', $this->modelo);
+                $stmt->bindValue(':horas', intval($this->horas));
+                $stmt->bindValue(':potencia', intval($this->potencia));
+                $stmt->bindValue(':ano', intval($this->ano));
+                $stmt->bindValue(':ativo', $this->ativo);
+                $stmt->bindValue(':fabricante', intval($this->fabricante));
+                $stmt->bindValue(':cliente', intval($this->id_cliente));
+                $stmt->bindValue(':combustivel', intval($this->combustivel));
+                $stmt->bindValue(':tipo', intval($this->tipo));
+                $stmt->bindValue(':usuario', $this->cadastrante);
+                $this->tamanho_min_procura = str_replace(',', '.', $this->tamanho_min_procura);
+                $this->tamanho_max_procura = str_replace(',', '.', $this->tamanho_max_procura);
+                $stmt->bindValue(':tamanho', $this->tamanho_min_procura.'-'.$this->tamanho_max_procura);
+                $stmt->bindValue(':quantmotores', intval($this->quant_motores));
+                $stmt->bindValue(':valor', $this->valor_min_procura.'-'.$this->valor_max_procura);
+                $stmt->bindValue(':propulsor', intval($this->propulsor));
+                $stmt->execute();
+                $this->conexao->commit();
+            } catch (Exception $e) {
+                $this->conexao->rollBack();
+                echo json_encode([
+                    "status" => "Ops!",
+                    "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                    "type" => "error"
+                ]);
+            }
+            
 
         }
         public function listarProcuras ($id){

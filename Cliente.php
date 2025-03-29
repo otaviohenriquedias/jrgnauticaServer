@@ -62,28 +62,37 @@ session_start();
             }
         }
         public function cadastrarCliente (){
+            $this->conexao->beginTransaction();
             $query = 
             '
             SET FOREIGN_KEY_CHECKS = 0;
             INSERT INTO clientes(nome, sobrenome, data_nascimento, contato, email, Sexo_id_Sexo, resp_atend, heat) 
             VALUES (:nome, :sobrenome, :data_nascimento, :contato, :email, :sexo, 3, 1)
             ';
-
-            $stmt = $this->conexao->prepare($query);
-            $stmt->bindValue(':nome', $this->nome);
-            $stmt->bindValue(':sobrenome', $this->sobrenome);
-            $stmt->bindValue(':data_nascimento', $this->converteData($this->data_nascimento));
-            $stmt->bindValue(':contato', $this->contato);
-            $stmt->bindValue(':email', $this->email);
-            $stmt->bindValue(':sexo', intval($this->sexo));
-            if($this->verficaContato($this->contato)){
-                $stmt->execute();
-                echo '{"status":"Cadastrado", "Mensagem" : "Cliente <b>'.$this->nome.'</b> , cadastrado com sucesso! Os dados do novo cliente já foram salvos no banco de dados.", "type" : "success"}';
-            }
-            else{
-                echo '{"status":"Ops!", "Mensagem" : "Atenção! Este cliente já possui um cadastro, tente outros dados. Verifique se o telefone já foi utilizado.", "type" : "error"}';
-            }
-            
+            try {
+                $stmt = $this->conexao->prepare($query);
+                $stmt->bindValue(':nome', $this->nome);
+                $stmt->bindValue(':sobrenome', $this->sobrenome);
+                $stmt->bindValue(':data_nascimento', $this->converteData($this->data_nascimento));
+                $stmt->bindValue(':contato', $this->contato);
+                $stmt->bindValue(':email', $this->email);
+                $stmt->bindValue(':sexo', intval($this->sexo));
+                if($this->verficaContato($this->contato)){
+                    $stmt->execute();
+                    $this->conexao->commit();
+                    echo '{"status":"Cadastrado", "Mensagem" : "Cliente <b>'.$this->nome.'</b> , cadastrado com sucesso! Os dados do novo cliente já foram salvos no banco de dados.", "type" : "success"}';
+                }
+                else{
+                    echo '{"status":"Ops!", "Mensagem" : "Atenção! Este cliente já possui um cadastro, tente outros dados. Verifique se o telefone já foi utilizado.", "type" : "error"}';
+                }
+            } catch (Exception $e) {
+                $this->conexao->rollBack();
+                echo json_encode([
+                    "status" => "Ops!",
+                    "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                    "type" => "error"
+                    ]);
+                }            
             }
             public function listarClientes (){
                 $query = 
@@ -213,6 +222,7 @@ session_start();
                 }
             }
             public function atualizaCliente ($id){
+                $this->conexao->beginTransaction();
                 $query =
     
                 '
@@ -226,24 +236,29 @@ session_start();
                     id_clientes = :id
     
                  ';
-    
-                $stmt = $this->conexao->prepare($query);
-                $stmt->bindValue(':nome', $this->nome);
-                $stmt->bindValue(':data', $this->data_nascimento);
-                $stmt->bindValue(':contato', $this->contato);
-                $stmt->bindValue(':email', $this->email);
-                $stmt->bindValue(':sexo', $this->sexo);
-                $stmt->bindValue(':sobrenome', $this->sobrenome);
-                $stmt->bindValue(':atendente', $this->atendente);
-                $stmt->bindValue(':heat', $this->heat);
-                $stmt->bindValue(':id', $id);
-                if($stmt->execute()){
-                    echo '{"status":"Atualizado!", "mensagem" : "Cliente atualizado com sucesso!", "type" : "success"}';
+                try {
+                    $stmt = $this->conexao->prepare($query);
+                    $stmt->bindValue(':nome', $this->nome);
+                    $stmt->bindValue(':data', $this->data_nascimento);
+                    $stmt->bindValue(':contato', $this->contato);
+                    $stmt->bindValue(':email', $this->email);
+                    $stmt->bindValue(':sexo', $this->sexo);
+                    $stmt->bindValue(':sobrenome', $this->sobrenome);
+                    $stmt->bindValue(':atendente', $this->atendente);
+                    $stmt->bindValue(':heat', $this->heat);
+                    $stmt->bindValue(':id', $id);
+                    if($stmt->execute()){
+                        $this->conexao->commit();
+                        echo '{"status":"Atualizado!", "mensagem" : "Cliente atualizado com sucesso!", "type" : "success"}';
+                    }
+                } catch (Exception $e) {
+                    $this->conexao->rollBack();
+                    echo json_encode([
+                        "status" => "Ops!",
+                        "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                        "type" => "error"
+                    ]);
                 }
-                else{
-                    echo '{"status":"Ops!", "mensagem" : "Algo deu errado, tente novamente...", "type" : "error"}';
-                }
-    
         }
         public function deletaCliente ($id, $conexao){
             require 'procura.php';

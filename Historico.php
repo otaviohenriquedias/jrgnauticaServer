@@ -24,6 +24,7 @@
         }
 
         public function createHistorico (){
+            $this->conexao->beginTransaction();
             $query = 
             '
                 INSERT INTO 
@@ -32,16 +33,23 @@
                 VALUES
                     (:id, :historico, :ocorrencia, :id_cliente)
             ';
-            $stmt = $this->conexao->prepare($query);
-            $stmt->bindValue(':id', intval($this->id_usuario));
-            $stmt->bindValue(':historico', $this->historico);
-            $stmt->bindValue(':ocorrencia', $this->ocorrencia);
-            $stmt->bindValue(':id_cliente', $this->id_cliente);
-            if($stmt->execute()){
-                echo '{"status":"Cadastrado!", "mensagem" : "Histórico cadastrado com sucesso!", "type" : "success"}';
-            }
-            else{
-                echo '{"status":"Ops!", "mensagem" : "Ocorreu uma falha na tentativa do cadastro. Consulte o suporte.", "type" : "error"}';
+            try {
+                $stmt = $this->conexao->prepare($query);
+                $stmt->bindValue(':id', intval($this->id_usuario));
+                $stmt->bindValue(':historico', $this->historico);
+                $stmt->bindValue(':ocorrencia', $this->ocorrencia);
+                $stmt->bindValue(':id_cliente', $this->id_cliente);
+                if($stmt->execute()){
+                    $this->conexao->commit();
+                    echo '{"status":"Cadastrado!", "mensagem" : "Histórico cadastrado com sucesso!", "type" : "success"}';
+                }
+            } catch (Exception $e) {
+                $this->conexao->rollBack();
+                echo json_encode([
+                    "status" => "Ops!",
+                    "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
+                    "type" => "error"
+                ]);
             }
         }
         public function getHistory (){
