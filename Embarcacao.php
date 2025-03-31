@@ -474,29 +474,39 @@ MAIORES INFORMAÇÕES VIA DIRECT OU WHATSAPP:
                 ]);
             }
     }
-    public function deletaEmb ($id){
+    public function deletaEmb($id) {
+        // Inicia a transação
         $this->conexao->beginTransaction();
-        $query = 
-        '
-            SET FOREIGN_KEY_CHECKS = 0;
-            DELETE FROM
-                embarcacao
-            WHERE
-                id_embarcacao= '.$id;
-        $stmt = $this->conexao->prepare($query);
+    
         try {
-            
+            // Desativa as verificações de chave estrangeira
+            $stmt = $this->conexao->prepare('SET FOREIGN_KEY_CHECKS = 0;');
             $stmt->execute();
+            // Libera o cursor após o comando SET
+            $stmt->closeCursor();
+    
+            // Executa a exclusão
+            $query = '
+                DELETE FROM
+                    embarcacao
+                WHERE
+                    id_embarcacao = :id';
+            $stmt = $this->conexao->prepare($query);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+            // Libera o cursor após o DELETE
+            $stmt->closeCursor();
+    
+            // Comita a transação
             $this->conexao->commit();
-
-        } catch (Exception $e){
+        } catch (Exception $e) {
+            // Se ocorrer algum erro, faz o rollback da transação
             $this->conexao->rollBack();
             echo json_encode([
                 "status" => "Ops!",
                 "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
                 "type" => "error"
             ]);
-
         }
     }
     public function gerarDescritivo($descricao){
