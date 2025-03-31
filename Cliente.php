@@ -18,7 +18,7 @@ session_start();
         private $conexaoPool;
 
         function __construct(PDO $conexao, Conexao $conexaoPool){
-            $this->conexao = $conexao->conectar();
+            $this->conexao = $conexao;
             $this->conexaoPool = $conexaoPool;
         }
 
@@ -92,7 +92,8 @@ session_start();
                     "mensagem" => "Algo deu errado, tente novamente... (" . $e->getMessage() . ")",
                     "type" => "error"
                     ]);
-                }            
+                }
+            
             }
             public function listarClientes (){
                 $query = 
@@ -236,7 +237,8 @@ session_start();
                     id_clientes = :id
     
                  ';
-                try {
+    
+                 try {
                     $stmt = $this->conexao->prepare($query);
                     $stmt->bindValue(':nome', $this->nome);
                     $stmt->bindValue(':data', $this->data_nascimento);
@@ -259,6 +261,7 @@ session_start();
                         "type" => "error"
                     ]);
                 }
+    
         }
         public function deletaCliente ($id, $conexao){
             require 'procura.php';

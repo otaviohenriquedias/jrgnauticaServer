@@ -4,7 +4,7 @@ include 'cliente.php';
         private $conexao;
         private $conexaoPool;
         function __construct(PDO $conexao, Conexao $conexaoPool){
-            $this->conexao = $conexao->conectar();
+            $this->conexao = $conexao;
             $this->conexaoPool = $conexaoPool;
         }
 
@@ -30,7 +30,7 @@ include 'cliente.php';
 
                 echo '<div class="panel panel-default">
                 <div class="panel-heading" style="height:auto">';
-                   echo'<a href="edit_cliente.php?id_cli='.$key.'" target="_blank" >'.$this->getNome($key, 'nome').' '.$this->getNome($key, 'sobrenome').'</a> - <img src="assets/heats/'.$heat.'.png" width=20 class="img-fluid" /> - ';
+                   echo'<a href="edit_cliente.php?id_cli='.$key.'" target="_blank" >'.$this->getNome($key, 'nome').' '.$this->getNome($key, 'sobrenome').'</a>- '; // - <img src="assets/heats/'.$heat.'.png" width=20 class="img-fluid" /> 
                    echo '<span class="xs-md-12 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-Warning ">';
                    echo  count($array[$key]);
                    echo  '<span class="visually-hidden"> Encontradas</span></span> - ';

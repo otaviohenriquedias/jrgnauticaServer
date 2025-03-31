@@ -10,7 +10,7 @@
         private $conexaoPool;
 
         function __construct(PDO $conexao, Conexao $conexaoPool){
-            $this->conexao = $conexao->conectar();
+            $this->conexao = $conexao;
             $this->conexaoPool = $conexaoPool;
         }
 
@@ -51,6 +51,7 @@
             INSERT INTO captador(nome_captador, contato, ativo, empresa, categoria) 
             VALUES (:nome, :contato, :ativo, :empresa, :categoria)
             ';
+
             try {
                 $stmt = $this->conexao->prepare($query);
                 $stmt->bindValue(':nome', $this->nome);
@@ -168,7 +169,8 @@
                         id_captador = :id
         
                      ';
-                    try {
+        
+                     try {
                         $stmt = $this->conexao->prepare($query);
                         $stmt->bindValue(':nome', $this->nome);
                         $stmt->bindValue(':contato', $this->contato);
@@ -187,9 +189,12 @@
                             "type" => "error"
                         ]);
                     }
-                }
-}
         
+            }
                 
             
+
+
+
+    }
 ?>

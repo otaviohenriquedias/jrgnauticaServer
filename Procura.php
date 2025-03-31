@@ -1,4 +1,5 @@
 <?php
+session_start();
     class Procura {
         private $conexao;
         private $conexaoPool;
@@ -26,7 +27,7 @@
         private $valor_max_procura;
 
         function __construct(PDO $conexao, Conexao $conexaoPool){
-            $this->conexao = $conexao->conectar();
+            $this->conexao = $conexao;
             $this->conexaoPool = $conexaoPool;
         }
 
@@ -79,7 +80,6 @@
                     "type" => "error"
                 ]);
             }
-            
 
         }
         public function listarProcuras ($id){
@@ -93,8 +93,8 @@
                     INNER JOIN usuario usu ON (pro.Usuario_id_usuario = usu.id_usuario )
                 WHERE
                     Clientes_id_clientes = :id
-                ORDER BY 
-                    data_procura ASC
+                ORDER BY    
+                data_procura ASC
             ';
 
             $stmt = $this->conexao->prepare($query);
@@ -289,11 +289,15 @@
                 FROM
                     procuras proc
                     INNER JOIN clientes cli ON (proc.Clientes_id_clientes = cli.id_clientes)
+                WHERE
+                    proc.Usuario_id_usuario = :id_user and cli.resp_atend = :resp_atend
                 ORDER BY 
                     cli.heat ASC
                 
             ';
             $stmt = $this->conexao->prepare($query);
+            $stmt->bindValue(':id_user', $_SESSION['id_usuario']);
+            $stmt->bindValue(':resp_atend', $_SESSION['id_usuario']);
             $stmt->execute();
             $data = $stmt->fetchAll(PDO::FETCH_OBJ); 
             foreach ($data as $value) {

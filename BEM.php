@@ -10,9 +10,8 @@
         private $motores_bem;
         private $conexao;
         private $conexaoPool;
-
         function __construct(PDO $conexao, Conexao $conexaoPool){
-            $this->conexao = $conexao->conectar();
+            $this->conexao = $conexao;
             $this->conexaoPool = $conexaoPool;
         }
 
@@ -37,6 +36,7 @@
             (modelo, pes,  Marina_id_marina, Tipo_id_tipo, Fabricantes_id_fabricantes, quant_motores, ano)
             VALUES (:modelo, :pes, :marina, :tipo, :fabricante, :motores, :ano)
             ';
+
             try {
                 $stmt = $this->conexao->prepare($query);
                 $stmt->bindValue(':modelo', $this->modelo_bem);
@@ -60,7 +60,7 @@
             }
 
             
-            }
+        }
 
 
 

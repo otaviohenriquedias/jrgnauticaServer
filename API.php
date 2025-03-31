@@ -1,19 +1,15 @@
 <?php
 class API {
-    private $searchTerm; 
-    private $credenciais = [];
-    private $conexao;
-        private $conexaoPool;
-        function __construct(PDO $conexao, Conexao $conexaoPool, $q = ''){
-            $this->conexao = $conexao->conectar();
-            $this->conexaoPool = $conexaoPool;
-            $this->searchTerm = $q;
-        }
-
-        public function __destruct() {
-            $this->conexaoPool->liberarConexao($this->conexao);
-        }
+    public function __construct(Conexao $conexao, $q = '')
+    {
+        $this->conexao = $conexao;
+        $this->searchTerm = $q;
+    }
      
+    private $conexao;
+    private $searchTerm; // Corrigido: removido o valor padrão 'nome do produto'
+    private $credenciais = [];
+
    public function getProduct(){
     $this->getCredentials();
     $url = "https://api.mercadolibre.com/users/".$this->credenciais[0]->id_seller."/items/search?q=".$this->searchTerm."&access_token=".$this->credenciais[0]->token."&category=MLB1743";
